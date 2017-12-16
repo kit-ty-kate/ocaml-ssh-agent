@@ -1,9 +1,9 @@
 module Privkey : sig
   type ssh_dss = Nocrypto.Dsa.priv
-  [@@deriving sexp]
+  [@@deriving sexp_of]
 
   type ssh_rsa = Nocrypto.Rsa.priv
-  [@@deriving sexp]
+  [@@deriving sexp_of]
 
   type t =
     | Ssh_dss of ssh_dss
@@ -12,15 +12,15 @@ module Privkey : sig
         key_type : string;
         key_blob : string;
       }
-  [@@deriving sexp]
+  [@@deriving sexp_of]
 end
 
 module Pubkey : sig
   type ssh_dss = Nocrypto.Dsa.pub
-  [@@deriving sexp]
+  [@@deriving sexp_of]
 
   type ssh_rsa = Nocrypto.Rsa.pub
-  [@@deriving sexp]
+  [@@deriving sexp_of]
 
   type t =
     | Ssh_dss of ssh_dss
@@ -29,26 +29,26 @@ module Pubkey : sig
         key_type : string;
         key_blob : string;
       }
-  [@@deriving sexp]
+  [@@deriving sexp_of]
 end
 
 type identity = {
   pubkey : Pubkey.t;
   comment : string;
 }
-[@@deriving sexp]
+[@@deriving sexp_of]
 
 type sign_flag = Protocol_number.sign_flag =
   | SSH_AGENT_RSA_SHA2_256
   | SSH_AGENT_RSA_SHA2_512
-[@@deriving sexp]
+[@@deriving sexp_of]
 
 (* TODO: constraint types *)
 type key_constraint = {
   constraint_type : int;
   constraint_data : string;
 }
-[@@deriving sexp]
+[@@deriving sexp_of]
 
 type ssh_agent_request_type = [
   | `Ssh_agentc_request_identities
