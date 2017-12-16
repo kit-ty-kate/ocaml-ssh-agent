@@ -12,6 +12,8 @@ module Privkey : sig
         key_type : string;
         key_blob : string;
       }
+    (** [Blob] is an unknown ssh wire string-unwrapped private key of type
+     * [key_type]. *)
   [@@deriving sexp_of]
 end
 
@@ -29,6 +31,8 @@ module Pubkey : sig
         key_type : string;
         key_blob : string;
       }
+    (** [Blob] is an unknown ssh wire string-unwrapped public key of type
+     * [key_type]. *)
   [@@deriving sexp_of]
 end
 
@@ -36,6 +40,9 @@ type identity = {
   pubkey : Pubkey.t;
   comment : string;
 }
+(** [identity]s are returned when querying for identities, i.e.
+ * in [Ssh_agent_identities_answer] when responding to
+ * [Ssh_agentc_request_identities]. *)
 [@@deriving sexp_of]
 
 type sign_flag = Protocol_number.sign_flag =
@@ -56,6 +63,9 @@ type ssh_agent_request_type = [
   | `Ssh_agentc_extension
   | `Ssh_agentc_successable
 ]
+(** [ssh_agent_request_type] is used in the below GADTs. It represents types of
+ * requests. The [`Ssh_agentc_successable] type is a generalization of all
+ * requests that expect either success or failure. *)
 
 type _ ssh_agent_request =
   | Ssh_agentc_request_identities :
@@ -105,6 +115,9 @@ type _ ssh_agent_response =
   | Ssh_agent_extension_failure : [`Ssh_agentc_extension] ssh_agent_response
   | Ssh_agent_extension_success : string
     -> [`Ssh_agentc_extension] ssh_agent_response
+  (** This is really SSH_AGENT_SUCCESS from the protocol specification.
+   * SSH_AGENT_SUCCESS responses do not contain data except for replies to
+   * extensions - in particular the 'query' extension. *)
   | Ssh_agent_identities_answer : identity list
     -> [`Ssh_agentc_request_identities] ssh_agent_response
   | Ssh_agent_sign_response : string
@@ -117,10 +130,16 @@ type any_ssh_agent_response =
 
 type request_handler =
   { handle : 'a . 'a ssh_agent_request -> 'a ssh_agent_response; }
+(** Any function that takes a request and returns a valid response for the
+ * request type *)
 
 module Parse : sig
   val ssh_agent_message : extension:bool -> any_ssh_agent_response Angstrom.t
+  (** [ssh_agentc_message ~extension] parses an ssh-agent response. If
+   * [extension] is [true], then the message is parsed as a response to a
+   * [Ssh_agentc_extension] request. *)
   val ssh_agentc_message : any_ssh_agent_request Angstrom.t
+  (** A parser for ssh-agent requests *)
 end
 
 module Serialize : sig
@@ -132,7 +151,12 @@ end
 
 val is_extension_request
   : 'a ssh_agent_request -> bool
+(** [is_extension_request request] returns true if [request] is
+ * [Ssh_agentc_extension]. Useful for passing [~extension] to
+ * [ssh_agent_message]. *)
 
 val unpack_any_response
   : 'a ssh_agent_request -> any_ssh_agent_response
   -> ('a ssh_agent_response, string) result
+(** [unpack_any_response request response] unpacks [response] if it is a valid
+ * response type with regard to [request], otherwise [Error] is returned.
