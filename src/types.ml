@@ -40,7 +40,9 @@ type identity = {
 }
 [@@deriving sexp]
 
-type sign_flag = Protocol_number.sign_flag
+type sign_flag = Protocol_number.sign_flag =
+  | SSH_AGENT_RSA_SHA2_256
+  | SSH_AGENT_RSA_SHA2_512
 [@@deriving sexp]
 
 (* TODO: constraint types *)
